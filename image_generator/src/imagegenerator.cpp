@@ -85,12 +85,16 @@ void GenerateImageRange( const COLORS color )
 
 	const int MINIMUMCOLORVALUE = 80;
 
-	for( int i = MINIMUMCOLORVALUE; i < 255; i += 2 )
+	for( int i = MINIMUMCOLORVALUE; i < 255; i++ )
 	{
+		std::string imageName = "";
+
 		switch( color )
 		{
 			case RED:
 				mat = cv::Mat( IMGWIDTH, IMGHEIGHT, CV_8UC3, cv::Scalar( 0, 0, i ) );   
+
+				imageName = "red_";
 #ifdef DEBUG
 				DisplayImage( "Red Image", mat );
 #endif
@@ -98,6 +102,8 @@ void GenerateImageRange( const COLORS color )
 
 			case GREEN:
 				mat = cv::Mat( IMGWIDTH, IMGHEIGHT, CV_8UC3, cv::Scalar( 0, i, 0 ) );
+
+				imageName = "green_";
 #ifdef DEBUG
 				DisplayImage( "Green Image", mat );
 #endif
@@ -105,6 +111,8 @@ void GenerateImageRange( const COLORS color )
 
 			case BLUE:
 				mat = cv::Mat( IMGWIDTH, IMGHEIGHT, CV_8UC3, cv::Scalar( i, 0, 0 ) );
+
+				imageName = "blue_";
 #ifdef DEBUG
 				DisplayImage( "Blue Image", mat );
 #endif
@@ -112,6 +120,22 @@ void GenerateImageRange( const COLORS color )
 			default:
 				std::cerr << "Error: Color is not supported!" << std::endl;
 				break;
+		}
+
+		// Append the value of the intensity to the image name:
+		imageName += std::to_string(i);
+		imageName += ".jpg"; 
+
+		// Save all EVEN values as a training image; save all ODD valued images as a validation image:
+		if( i % 2 == 0 )
+		{
+			// Training image:
+			cv::imwrite( TOPLEVELIMAGES+"/"+TRAININGIMAGES+"/"+imageName, mat );
+		}
+		else
+		{
+			// Validation image:
+			cv::imwrite( TOPLEVELIMAGES+"/"+TESTIMAGES+"/"+imageName, mat );
 		}
 	}
 }
@@ -160,11 +184,10 @@ int main( int argc, char **argv )
 		return -1;
 	}
 
-	// Generate a color (BGR format)
-	//cv::Mat image = GenerateImage(100, 0, 0);
-	//DisplayImage( "Blue Image", image );
-
+	// Generate RGB Image sets:
 	CreateImageSet( RED );
+	CreateImageSet( GREEN );
+	CreateImageSet( BLUE );
 
 	return 0;
 }
