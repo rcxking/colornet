@@ -10,7 +10,7 @@
 // STL Includes:
 #include <iostream>
 #include <string>
-#include <map>
+#include <vector>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -23,7 +23,7 @@
 // Constants:
 const std::string TOPLEVELIMAGES = "images"; 
 const std::string TRAININGIMAGES = "training_images";
-const std::string TESTIMAGES = "test_images";   
+const std::string TESTIMAGES = "test_images";    
 
 // Image Size:
 const int IMGWIDTH = 128;
@@ -40,8 +40,9 @@ enum COLORS
 // Function prototypes:
 int GenerateFolderStructure(); 
 cv::Mat GenerateImage( const int blue, const int green, const int red ); 
+void GenerateImageRange( const COLORS color );
 void CreateImageSet( const COLORS color );     
-void DisplayImage( const std::string& imageName, const cv::Mat& image );     
+void DisplayImage( const std::string& imageName, const cv::Mat& image );   
 
 // Function to create folders to hold training and test images:
 int GenerateFolderStructure()
@@ -77,6 +78,44 @@ cv::Mat GenerateImage( const int blue, const int green, const int red )
 	       cv::Scalar( blue, green, red ) );
 }
 
+// Function to generate a certain range of images (i.e. all blue, all red, etc.)
+void GenerateImageRange( const COLORS color )
+{
+	cv::Mat mat( IMGWIDTH, IMGHEIGHT, CV_8UC3, cv::Scalar( 0, 0, 0 ) );  
+
+	const int MINIMUMCOLORVALUE = 80;
+
+	for( int i = MINIMUMCOLORVALUE; i < 255; i += 2 )
+	{
+		switch( color )
+		{
+			case RED:
+				mat = cv::Mat( IMGWIDTH, IMGHEIGHT, CV_8UC3, cv::Scalar( 0, 0, i ) );   
+#ifdef DEBUG
+				DisplayImage( "Red Image", mat );
+#endif
+				break;
+
+			case GREEN:
+				mat = cv::Mat( IMGWIDTH, IMGHEIGHT, CV_8UC3, cv::Scalar( 0, i, 0 ) );
+#ifdef DEBUG
+				DisplayImage( "Green Image", mat );
+#endif
+				break;
+
+			case BLUE:
+				mat = cv::Mat( IMGWIDTH, IMGHEIGHT, CV_8UC3, cv::Scalar( i, 0, 0 ) );
+#ifdef DEBUG
+				DisplayImage( "Blue Image", mat );
+#endif
+				break;
+			default:
+				std::cerr << "Error: Color is not supported!" << std::endl;
+				break;
+		}
+	}
+}
+
 // Function to generate an image set.  For now, only Red, Green, and Blue images can be generated   
 void CreateImageSet( const COLORS color )
 {
@@ -85,14 +124,18 @@ void CreateImageSet( const COLORS color )
 
 		case RED:
 			std::cerr << "Generating RED images." << std::endl;
+			GenerateImageRange( RED );
 			break; 
 
 		case GREEN:
 			std::cerr << "Generating GREEN images." << std::endl;
+			GenerateImageRange( GREEN );
 			break;
 			
 		case BLUE:
 			std::cerr << "Generating BLUE images." << std::endl; 
+			GenerateImageRange( BLUE );
+			break;
 
 		default:
 			std::cerr << "Non existent color!" << std::endl;
@@ -117,9 +160,11 @@ int main( int argc, char **argv )
 		return -1;
 	}
 
-	cv::Mat image = GenerateImage(128, 100, 100);
+	// Generate a color (BGR format)
+	//cv::Mat image = GenerateImage(100, 0, 0);
+	//DisplayImage( "Blue Image", image );
 
-	DisplayImage( "Blue Image", image );
+	CreateImageSet( RED );
 
 	return 0;
 }
