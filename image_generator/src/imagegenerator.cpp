@@ -10,8 +10,10 @@
 // STL Includes:
 #include <iostream>
 #include <string>
+#include <map>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <errno.h>
 
 // OpenCV Headers:
 #include "opencv2/core/core.hpp"
@@ -27,17 +29,43 @@ const std::string TESTIMAGES = "test_images";
 const int IMGWIDTH = 128;
 const int IMGHEIGHT = 128;
 
+// Enumerations:
+enum COLORS
+{
+	RED=0,
+	GREEN,
+	BLUE	
+};
+
 // Function prototypes:
-void GenerateFolderStructure(); 
-cv::Mat GenerateImage( const int blue, const int green, const int red );  
-void DisplayImage( const std::string& imageName, const cv::Mat& image );   
+int GenerateFolderStructure(); 
+cv::Mat GenerateImage( const int blue, const int green, const int red ); 
+void CreateImageSet( const COLORS color );     
+void DisplayImage( const std::string& imageName, const cv::Mat& image );     
 
 // Function to create folders to hold training and test images:
-void GenerateFolderStructure()
+int GenerateFolderStructure()
 {
-	mkdir( TOPLEVELIMAGES.c_str(), 0777 );
-	mkdir( (TOPLEVELIMAGES+"/"+TRAININGIMAGES).c_str(), 0777 );
-	mkdir( (TOPLEVELIMAGES+"/"+TESTIMAGES).c_str(), 0777 );
+	if( mkdir( TOPLEVELIMAGES.c_str(), 0777 ) == -1 && errno != EEXIST )
+	{
+		std::cerr << "Error: Could not create " << TOPLEVELIMAGES << " directory." << std::endl;
+		return -1;
+	}
+
+	if( mkdir( (TOPLEVELIMAGES+"/"+TRAININGIMAGES).c_str(), 0777 ) == -1 && errno != EEXIST )
+	{
+		 std::cerr << "Error: Could not create " << TRAININGIMAGES << " directory." << std::endl;
+		 return -1;
+	}
+
+
+	if( mkdir( (TOPLEVELIMAGES+"/"+TESTIMAGES).c_str(), 0777 ) == -1 && errno != EEXIST )
+	{
+		 std::cerr << "Error: Could not create " << TESTIMAGES << " directory." << std::endl;
+		 return -1;
+	}
+
+	return 0;
 }
 
 // Function to generate an RGB image:
@@ -47,6 +75,29 @@ cv::Mat GenerateImage( const int blue, const int green, const int red )
 	// Remember that OpenCV stores colors as BGR rather than RGB. 
 	return cv::Mat( IMGWIDTH, IMGHEIGHT, CV_8UC3, 
 	       cv::Scalar( blue, green, red ) );
+}
+
+// Function to generate an image set.  For now, only Red, Green, and Blue images can be generated   
+void CreateImageSet( const COLORS color )
+{
+	switch ( color )
+	{
+
+		case RED:
+			std::cerr << "Generating RED images." << std::endl;
+			break; 
+
+		case GREEN:
+			std::cerr << "Generating GREEN images." << std::endl;
+			break;
+			
+		case BLUE:
+			std::cerr << "Generating BLUE images." << std::endl; 
+
+		default:
+			std::cerr << "Non existent color!" << std::endl;
+			break;
+	}
 }
 
 // Function to display an image:
@@ -60,9 +111,13 @@ void DisplayImage( const std::string& imageName, const cv::Mat& image )
 int main( int argc, char **argv )
 {
 	// Generate the folders to store test images:
-	//GenerateFolderStructure();
+	if( GenerateFolderStructure() != 0 )
+	{
+		std::cerr << "ERROR: Could not generate image folders!" << std::endl;
+		return -1;
+	}
 
-	cv::Mat image = GenerateImage(255, 0, 0);
+	cv::Mat image = GenerateImage(128, 100, 100);
 
 	DisplayImage( "Blue Image", image );
 
